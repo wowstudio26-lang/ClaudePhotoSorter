@@ -30,18 +30,23 @@ class PhotoAnalyzer(context: Context) {
         PhotoItem(uri.toString(), name, error = e.localizedMessage ?: "Could not analyze image")
     }
 
-    private fun sha256(uri: Uri): String? = try {
-        val digest = MessageDigest.getInstance("SHA-256")
-        resolver.openInputStream(uri)?.use { input ->
-            val buffer = ByteArray(16 * 1024)
-            while (true) {
-                val count = input.read(buffer)
-                if (count < 0) break
-                digest.update(buffer, 0, count)
+    private fun sha256(uri: Uri): String? {
+        return try {
+            val digest = MessageDigest.getInstance("SHA-256")
+            val stream = resolver.openInputStream(uri) ?: return null
+            stream.use { input ->
+                val buffer = ByteArray(16 * 1024)
+                while (true) {
+                    val count = input.read(buffer)
+                    if (count < 0) break
+                    digest.update(buffer, 0, count)
+                }
             }
-        } ?: return null
-        digest.digest().joinToString("") { "%02x".format(it) }
-    } catch (_: Exception) { null }
+            digest.digest().joinToString("") { "%02x".format(it) }
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     fun close() = labeler.close()
 }
