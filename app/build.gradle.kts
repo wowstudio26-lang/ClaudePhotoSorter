@@ -5,7 +5,7 @@ plugins {
 }
 android {
     namespace = "com.wowstudio.claudephotosorter"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.wowstudio.claudephotosorter"
         minSdk = 26
