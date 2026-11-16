@@ -119,6 +119,7 @@ private fun PhotoSorterScreen(
     onAnalyze: (List<Uri>, (Int, Int) -> Unit, (List<PhotoItem>) -> Unit) -> Unit,
     onSort: (List<PhotoItem>, Uri, (Int, Int) -> Unit, (SortSummary) -> Unit) -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     var selected by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var results by remember { mutableStateOf<List<PhotoItem>>(emptyList()) }
     var progress by remember { mutableStateOf<Pair<Int, Int>?>(null) }
@@ -138,12 +139,13 @@ private fun PhotoSorterScreen(
     val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
         if (uri != null) {
             try {
-                contentResolverTakePermission(uri)
-                destination = uri
-                sortSummary = null
-            } catch (_: Exception) {
-                destination = uri
-            }
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (_: Exception) { }
+            destination = uri
+            sortSummary = null
         }
     }
 
@@ -248,15 +250,3 @@ private fun PhotoSorterScreen(
     }
 }
 
-@Composable
-private fun contentResolverTakePermission(uri: Uri) {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    SideEffect {
-        try {
-            context.contentResolver.takePersistableUriPermission(
-                uri,
-                android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-            )
-        } catch (_: Exception) { }
-    }
-}
